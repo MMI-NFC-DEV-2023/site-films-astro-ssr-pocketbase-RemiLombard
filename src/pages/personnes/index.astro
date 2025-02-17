@@ -1,4 +1,5 @@
 ---
+import Debug from "astro/components/Debug.astro";
 import { pb } from "../../backend";
 
 export const prerender = false;
@@ -6,6 +7,4 @@ export const prerender = false;
 const personnes = await pb.collection("Personnes").getFullList()
 ---
 
-<pre>
-    {JSON.stringify(personnes, null, 2)}
-</pre>
+<Debug {personnes} />
