@@ -6,7 +6,9 @@ import type PocketBase from 'pocketbase'
 import type { RecordService } from 'pocketbase'
 
 export enum Collections {
+	Films = "Films",
 	Personnes = "Personnes",
+	Roles = "Roles",
 	Authorigins = "_authOrigins",
 	Externalauths = "_externalAuths",
 	Mfas = "_mfas",
@@ -37,10 +39,25 @@ export type AuthSystemFields<T = never> = {
 
 // Record types for each collection
 
+export type FilmsRecord = {
+	created?: IsoDateString
+	dateSortie?: IsoDateString
+	duree?: number
+	id: string
+	langue?: string
+	producteur?: RecordIdString
+	roles?: RecordIdString[]
+	scenaristes?: RecordIdString[]
+	synopsis?: string
+	titre?: string
+	updated?: IsoDateString
+}
+
 export enum PersonnesNationaliteOptions {
 	"FR" = "FR",
 	"US" = "US",
 	"UK" = "UK",
+	"CA" = "CA",
 }
 
 export enum PersonnesProfessionOptions {
@@ -58,7 +75,15 @@ export type PersonnesRecord = {
 	nationalite?: PersonnesNationaliteOptions
 	nom?: string
 	prenom?: string
-	profession?: PersonnesProfessionOptions
+	profession?: PersonnesProfessionOptions[]
+	updated?: IsoDateString
+}
+
+export type RolesRecord = {
+	acteur?: RecordIdString
+	created?: IsoDateString
+	id: string
+	nomRole?: string
 	updated?: IsoDateString
 }
 
@@ -125,7 +150,9 @@ export type UsersRecord = {
 }
 
 // Response types include system fields and match responses from the PocketBase API
+export type FilmsResponse<Texpand = unknown> = Required<FilmsRecord> & BaseSystemFields<Texpand>
 export type PersonnesResponse<Texpand = unknown> = Required<PersonnesRecord> & BaseSystemFields<Texpand>
+export type RolesResponse<Texpand = unknown> = Required<RolesRecord> & BaseSystemFields<Texpand>
 export type AuthoriginsResponse<Texpand = unknown> = Required<AuthoriginsRecord> & BaseSystemFields<Texpand>
 export type ExternalauthsResponse<Texpand = unknown> = Required<ExternalauthsRecord> & BaseSystemFields<Texpand>
 export type MfasResponse<Texpand = unknown> = Required<MfasRecord> & BaseSystemFields<Texpand>
@@ -136,7 +163,9 @@ export type UsersResponse<Texpand = unknown> = Required<UsersRecord> & AuthSyste
 // Types containing all Records and Responses, useful for creating typing helper functions
 
 export type CollectionRecords = {
+	Films: FilmsRecord
 	Personnes: PersonnesRecord
+	Roles: RolesRecord
 	_authOrigins: AuthoriginsRecord
 	_externalAuths: ExternalauthsRecord
 	_mfas: MfasRecord
@@ -146,7 +175,9 @@ export type CollectionRecords = {
 }
 
 export type CollectionResponses = {
+	Films: FilmsResponse
 	Personnes: PersonnesResponse
+	Roles: RolesResponse
 	_authOrigins: AuthoriginsResponse
 	_externalAuths: ExternalauthsResponse
 	_mfas: MfasResponse
@@ -159,7 +190,9 @@ export type CollectionResponses = {
 // https://github.com/pocketbase/js-sdk#specify-typescript-definitions
 
 export type TypedPocketBase = PocketBase & {
+	collection(idOrName: 'Films'): RecordService<FilmsResponse>
 	collection(idOrName: 'Personnes'): RecordService<PersonnesResponse>
+	collection(idOrName: 'Roles'): RecordService<RolesResponse>
 	collection(idOrName: '_authOrigins'): RecordService<AuthoriginsResponse>
 	collection(idOrName: '_externalAuths'): RecordService<ExternalauthsResponse>
 	collection(idOrName: '_mfas'): RecordService<MfasResponse>
