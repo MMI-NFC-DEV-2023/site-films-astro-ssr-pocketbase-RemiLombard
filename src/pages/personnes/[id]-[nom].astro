@@ -1,0 +1,73 @@
+---
+import Debug from "astro/components/Debug.astro";
+import Layout from "../../layouts/Layout.astro";
+import type {
+  PersonnesResponse,
+  FilmsResponse,
+  RolesResponse,
+} from "../../pocketbase-typegen";
+
+import LinkFilm from "../../components/LinkFilm.astro";
+
+export const prerender = false;
+
+const id = Astro.params.id;
+
+const personne = await Astro.locals.pb
+  .collection<
+    PersonnesResponse<{
+      Films_via_producteur?: FilmsResponse[];
+      Films_via_scenaristes?: FilmsResponse[];
+      Roles_via_acteur?: RolesResponse<{ Films_via_roles: FilmsResponse[] }>[];
+    }>
+  >("Personnes")
+  .getOne(id!, {
+    expand:
+      "Films_via_producteur, Films_via_scenaristes, Roles_via_acteur.Films_via_roles",
+  });
+---
+
+<Layout pageTitle="Liste des personnes">
+  <div>
+    <h2>
+      Personne : {personne.prenom}
+      {personne.nom}
+    </h2>
+    {
+      personne.expand?.Roles_via_acteur && (
+        <p>
+          Rôles joués :{" "}
+          {personne.expand?.Roles_via_acteur?.map((f) => (
+            <>
+              <span>
+                {f.nomRole + " joué dans : "}
+                {f.expand?.Films_via_roles && (
+                <LinkFilm {...f.expand?.Films_via_roles[0]} />)}
+              </span>
+            </>
+          ))}
+        </p>
+      )
+    }
+    {
+      personne.expand?.Films_via_producteur && (
+        <p>
+          Films en tant que producteur :{" "}
+          {personne.expand?.Films_via_producteur?.map((f) => (
+            <span>{f.titre + ", "}</span>
+          ))}
+        </p>
+      )
+    }
+    {
+      personne.expand?.Films_via_producteur && (
+        <p>
+          Films en tant que scenariste :{" "}
+          {personne.expand?.Films_via_scenaristes?.map((f) => (
+            <span>{f.titre + ", "}</span>
+          ))}
+        </p>
+      )
+    }
+  </div>
+</Layout>

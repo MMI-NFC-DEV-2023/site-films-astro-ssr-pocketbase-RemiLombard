@@ -1,0 +1,65 @@
+---
+import LinkPersonne from "../../components/LinkPersonne.astro";
+import Layout from "../../layouts/Layout.astro";
+
+import type {
+  FilmsResponse,
+  PersonnesResponse,
+  RolesResponse,
+} from "../../pocketbase-typegen";
+
+export const prerender = false;
+
+const id = Astro.params.id;
+
+const film = await Astro.locals.pb
+  .collection<
+    FilmsResponse<{
+      producteur: PersonnesResponse;
+      scenaristes: PersonnesResponse[];
+      roles: RolesResponse<{ acteur: PersonnesResponse }>[];
+    }>
+  >("Films")
+  .getOne(id!, { expand: "producteur, scenaristes, role.acteur" });
+---
+
+<Layout pageTitle={`film : ${film.titre}`}>
+  <div>
+    <h2>{film.titre}</h2>
+    <p>Date de sortie : {film.dateSortie}</p>
+    <p>Synoosis : {film.synopsis}</p>
+    {
+      film.expand?.producteur && (
+        <p>
+          Producteur : {film.expand?.producteur.prenom}{" "}
+          {film.expand?.producteur.nom}
+        </p>
+      )
+    }
+    {
+      film.expand?.scenaristes && (
+        <p>
+          Scénaristes :{" "}
+          {film.expand?.scenaristes.map((s) => (
+            <span>
+              {s.prenom} {s.nom + ", "}
+            </span>
+          ))}
+        </p>
+      )
+    }
+    {
+      film.expand?.roles && (
+        <p>
+          Casting :{" "}
+          {film.expand?.roles.map((r) => (
+            <span>
+              <LinkPersonne {...r.expand?.acteur} /> joue{" "}
+              {r.nomRole + ", "}
+            </span>
+          ))}
+        </p>
+      )
+    }
+  </div>
+</Layout>

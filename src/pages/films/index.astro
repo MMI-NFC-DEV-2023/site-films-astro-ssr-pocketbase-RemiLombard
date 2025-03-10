@@ -20,6 +20,6 @@ const listFilms = await Astro.locals.pb
     listFilms.map((film) => (
       <LinkFilm {...film} />
     ))
-  };
+  }
   <Debug {listFilms} />
 </Layout>

@@ -1,9 +1,12 @@
 ---
+import GithubSlugger from "github-slugger";
+
+const slugger = new GithubSlugger();
+
 import type { FilmsResponse } from "../pocketbase-typegen";
 
 type Props = FilmsResponse;
-
 const film = Astro.props;
 ---
 
-<a href={`/films/${film.id}`}>{film.titre}</a>
+<a href={`/films/${film.id}-${slugger.slug(film.titre)}`}>{film.titre}</a>

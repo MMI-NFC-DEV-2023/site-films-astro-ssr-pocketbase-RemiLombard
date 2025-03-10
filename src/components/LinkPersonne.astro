@@ -1,9 +1,13 @@
 ---
+import GithubSlugger from "github-slugger";
+
+const slugger = new GithubSlugger();
 import type { PersonnesResponse } from "../pocketbase-typegen";
 
 type Props = PersonnesResponse;
-
 const personne = Astro.props;
 ---
 
-<>: <a href={`/personnes/${personne.id}`}>{personne.nom}</a></>
+<a href={`/personnes/${personne.id}-${slugger.slug(personne.nom)}`}
+  >{personne.prenom + " " + personne.nom}</a
+>
