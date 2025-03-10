@@ -3,20 +3,22 @@ import PocketBase from "pocketbase";
 import { defineMiddleware } from "astro/middleware";
 
 export const onRequest = defineMiddleware(
-  async ({ locals, request }, next: () => any) => {
-    locals.pb = new PocketBase(import.meta.env.VITE_URL_POCKETBASE);
+  async ({ locals, request, isPrerendered }, next: () => any) => {
+    locals.pb = new PocketBase(import.meta.env.PUBLIC_POKEAPI);
 
 
-    // load the store data from the request cookie string
-    locals.pb.authStore.loadFromCookie(request.headers.get("cookie") || "");
-
-    try {
-      // get an up-to-date auth store state by verifying and refreshing the loaded auth record (if any)
-      locals.pb.authStore.isValid &&
-        (await locals.pb.collection("users").authRefresh());
-    } catch (_) {
-      // clear the auth store on failed refresh
-      locals.pb.authStore.clear();
+    if (!isPrerendered) {
+      // load the store data from the request cookie string
+      locals.pb.authStore.loadFromCookie(request.headers.get("cookie") || "");
+  
+      try {
+        // get an up-to-date auth store state by verifying and refreshing the loaded auth record (if any)
+        locals.pb.authStore.isValid &&
+          (await locals.pb.collection("users").authRefresh());
+      } catch (_) {
+        // clear the auth store on failed refresh
+        locals.pb.authStore.clear();
+      }
     }
 
     const response = await next();
