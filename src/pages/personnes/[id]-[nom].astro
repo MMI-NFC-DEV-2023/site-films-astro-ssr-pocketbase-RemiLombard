@@ -8,6 +8,7 @@ import type {
 } from "../../pocketbase-typegen";
 
 import LinkFilm from "../../components/LinkFilm.astro";
+import { isValid } from "astro:schema";
 
 export const prerender = false;
 
@@ -33,6 +34,7 @@ const personne = await Astro.locals.pb
       Personne : {personne.prenom}
       {personne.nom}
     </h2>
+    {Astro.locals.pb.authStore.isValid && <a href={`/personnes/edit/${personne.id}`}>Edit</a>}
     {
       personne.expand?.Roles_via_acteur && (
         <p>

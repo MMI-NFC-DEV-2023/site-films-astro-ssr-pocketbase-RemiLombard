@@ -1,16 +1,38 @@
 ---
 import Layout from "../../../layouts/Layout.astro";
-import { PersonnesProfessionOptions } from "../../../pocketbase-typegen";
-
+import {
+  PersonnesNationaliteOptions,
+  PersonnesProfessionOptions,
+  type PersonnesResponse,
+} from "../../../pocketbase-typegen";
 export const prerender = false;
+
+const id = Astro.params.id;
 
 const pb = Astro.locals.pb;
 
+const personne = id
+  ? await pb.collection("Personnes").getOne(id!)
+  : ({} as PersonnesResponse);
+
 if (Astro.request.method === "POST") {
   const data = await Astro.request.formData();
-  const personne = await pb.collection("Personnes").create(data);
+  try {
+    const personne = await (id
+      ? pb.collection("Personnes").update(id, data)
+      : pb.collection("Personnes").create(data));
+  
+    return Astro.redirect(
+      `/personnes/${personne.id}-${encodeURIComponent(personne.nom)}`
+    );
+  } catch (error) {
+    console.error(error);
+    
+  }
+}
 
-  return Astro.redirect(`/personnes/${personne.id}-${personne.nom}`);
+function formatDate(date: string) {
+  return date ? new Date(date).toISOString().split("T")[0] : "";
 }
 ---
 
@@ -20,48 +42,64 @@ if (Astro.request.method === "POST") {
   <form class="*:content grid grid-cols-2" method="post">
     <label
       >Prénom
-      <input type="text" name="prenom" />
+      <input type="text" name="prenom" value={personne.prenom} />
     </label>
 
     <label
       >Nom
-      <input type="text" name="nom" />
+      <input type="text" name="nom" value={personne.nom} />
     </label>
 
     <label
       >Date de Naissance
-      <input type="date" name="dateNaissance" />
+      <input
+        type="date"
+        name="dateNaissance"
+        value={formatDate(personne.dateNaissance)}
+      />
     </label>
 
     <label
       >Lieu de Naissance
-      <input type="text" name="lieuNaissance" />
+      <input type="text" name="lieuNaissance" value={personne.lieuNaissance} />
     </label>
 
     <label
       >Date de Décès
-      <input type="date" name="dateDeces" />
+      <input
+        type="date"
+        name="dateDeces"
+        value={formatDate(personne.dateDeces)}
+      />
     </label>
 
     <label
       >Nationalité
       <select name="nationalite">
-        <option>FR</option>
-        <option>US</option>
-        <option>UK</option>
-        <option>CA</option>
-      </select>
-    </label>
-    
-    <label
-      >Profession
-      <select name="profession">
-        {Object.entries(PersonnesProfessionOptions).map(([key, value]) => (
-          <option value={key}>{value}</option>
-        ))}
+        {
+          Object.entries(PersonnesNationaliteOptions).map(([key, value]) => (
+            <option selected={personne.nationalite}>{key}</option>
+          ))
+        }
       </select>
     </label>
 
-    <button>Envoyer</button>
+    <fieldset>
+      <legend>Profession</legend>
+      {
+        Object.entries(PersonnesProfessionOptions).map(([key, value]) => (
+          <label>
+            {key}
+            <input
+              type="checkbox"
+              name="profession"
+              checked={personne.profession?.includes(value)}
+              value={value}
+            />
+          </label>
+        ))
+      }
+    </fieldset>
+    <button>{id ? "Modifier" : "Ajouter"}</button>
   </form>
 </Layout>
